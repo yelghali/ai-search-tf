@@ -1,12 +1,12 @@
-# Day 1+: JSON-defined indexes
+# Day 1+: index creation from JSON
 
 This independent Terraform root manages indexes on an existing Search service.
 It never creates or manages the service. It calls the reusable
-[search-index module](../modules/search-index/main.tf) once per `index_files` entry.
+[index creation module](../modules/index-creation/main.tf) once per `index_files` entry.
 
 ## Deploy the demos
 
-Complete [Day 0](../entra-id/README.md) first. Use the same Azure identity and
+Complete [Day 0](../ai-search-creation/README.md) first. Use the same Azure identity and
 subscription, then create a local `terraform.tfvars` in this directory:
 
 ```hcl

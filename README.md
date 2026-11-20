@@ -5,11 +5,11 @@ scripts or API keys. The same Terraform configuration works on Windows and Linux
 
 ## Layout
 
-- [Day 0: entra-id](ai-search-terraform/entra-id/README.md): service, resource
+- [Day 0: AI Search creation](ai-search-terraform/ai-search-creation/README.md): service, resource
   group, and RBAC, in its own Terraform state.
-- [Day 1+: indexes](ai-search-terraform/indexes/README.md): hotels and reservations
+- [Day 1+: index creation](ai-search-terraform/index-creation/README.md): hotels and reservations
   demos loaded from local JSON files, in a separate Terraform state.
-- [Reusable index module](ai-search-terraform/modules/search-index/main.tf):
+- [Reusable index creation module](ai-search-terraform/modules/index-creation/main.tf):
   one native AzAPI data-plane resource per index.
 
 ## Prerequisites
@@ -20,7 +20,7 @@ Use the same identity and subscription for both stages.
 
 ## Day 0
 
-From `ai-search-terraform/entra-id`:
+From `ai-search-terraform/ai-search-creation`:
 
 ```shell
 az login
@@ -37,7 +37,7 @@ in a local `terraform.tfvars`.
 
 ## Day 1, 2, 3...
 
-From `ai-search-terraform/indexes`, create a local `terraform.tfvars`:
+From `ai-search-terraform/index-creation`, create a local `terraform.tfvars`:
 
 ```hcl
 search_service_name = "<SERVICE_NAME_FROM_DAY_0>"
@@ -61,13 +61,13 @@ Terraform state and local variable files must not be committed.
 
 ## Cleanup
 
-Destroy indexes first from `ai-search-terraform/indexes`:
+Destroy indexes first from `ai-search-terraform/index-creation`:
 
 ```shell
 terraform destroy
 ```
 
-Then destroy infrastructure from `ai-search-terraform/entra-id`:
+Then destroy infrastructure from `ai-search-terraform/ai-search-creation`:
 
 ```shell
 terraform destroy -var="sku=free"

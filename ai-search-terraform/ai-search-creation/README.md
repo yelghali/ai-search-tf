@@ -1,8 +1,8 @@
-# Day 0: Search infrastructure
+# Day 0: AI Search creation
 
 Creates only a resource group, Azure AI Search service (key authentication
 disabled), and service-scoped Search Service Contributor assignment for the
-deploying identity. Indexes are managed separately in [Day 1+](../indexes/README.md).
+deploying identity. Indexes are managed separately in [Day 1+](../index-creation/README.md).
 
 ## Deploy
 
@@ -39,7 +39,7 @@ No index schema or index file input belongs in this stage.
 
 ## Cleanup
 
-Destroy [Day 1 indexes](../indexes/README.md) first, then:
+Destroy [Day 1 indexes](../index-creation/README.md) first, then:
 
 ```shell
 terraform destroy -var="sku=free"

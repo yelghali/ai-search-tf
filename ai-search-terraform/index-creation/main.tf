@@ -25,7 +25,7 @@ variable "index_files" {
 }
 
 module "indexes" {
-  source   = "../modules/search-index"
+  source   = "../modules/index-creation"
   for_each = var.index_files
 
   search_service_name   = var.search_service_name
