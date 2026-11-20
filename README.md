@@ -1,43 +1,76 @@
-# Azure AI Search with Terraform and Entra ID
+# Azure AI Search: Day 0 infrastructure, Day 1+ indexes
 
-Automatically deploy an Azure resource group, an Azure AI Search service, and a
-sample `hotels` index in one Terraform apply. Authentication uses Microsoft Entra
-ID only; API-key authentication is disabled.
+Manage Azure AI Search with Terraform and Entra ID only. No index-creation
+scripts or API keys. The same Terraform configuration works on Windows and Linux.
 
-## How it works
+## Layout
 
-1. Terraform provisions the resource group and search service.
-2. Terraform grants **Search Service Contributor** to the deploying identity at
-   the search-service scope.
-3. A small PowerShell script obtains an Azure CLI bearer token and creates or
-   updates the index using the Search REST API, retrying readiness failures.
-
-Infrastructure, RBAC, and the index schema are defined in Terraform. No admin
-key, manual index creation, or prerequisite RBAC script is needed.
+- [Day 0: entra-id](ai-search-terraform/entra-id/README.md): service, resource
+  group, and RBAC, in its own Terraform state.
+- [Day 1+: indexes](ai-search-terraform/indexes/README.md): hotels and reservations
+  demos loaded from local JSON files, in a separate Terraform state.
+- [Reusable index module](ai-search-terraform/modules/search-index/main.tf):
+  one native AzAPI data-plane resource per index.
 
 ## Prerequisites
 
-- Terraform 1.0+, Azure CLI, and PowerShell 7+ (`pwsh` on PATH).
-- An Azure login with permission to create resources and assign roles:
-  **Owner**, or **Contributor** plus **User Access Administrator**, at the
-  deployment scope.
-- Terraform and Azure CLI must use the same identity.
+Terraform 1.0+, Azure CLI authenticated with `az login`, and permissions to create
+resources and assign roles (Owner, or Contributor plus User Access Administrator).
+Use the same identity and subscription for both stages.
 
-## Quick start (PowerShell)
+## Day 0
 
-```powershell
+From `ai-search-terraform/entra-id`:
+
+```shell
 az login
 az account set --subscription "<SUBSCRIPTION_ID>"
-cd ai-search-terraform\entra-id
 terraform init
 terraform plan -var="sku=free" -out=main.tfplan
 terraform apply main.tfplan
+terraform output -raw azurerm_search_service_name
 ```
 
-The Free tier allows one service per subscription. The template default is
-**Standard**, which is billable. Continue passing `-var="sku=free"` on subsequent
-plans/applies, or save `sku = "free"` in a local, git-ignored `terraform.tfvars`.
-Terraform state must be retained to manage the deployed resources.
+Copy the service name output. Free allows one service per subscription.
+The default SKU is Standard and is billable; keep passing `sku=free` or save it
+in a local `terraform.tfvars`.
 
-See the [Entra ID deployment guide](ai-search-terraform/entra-id/README.md) for
-verification, configuration, troubleshooting, and cleanup.
+## Day 1, 2, 3...
+
+From `ai-search-terraform/indexes`, create a local `terraform.tfvars`:
+
+```hcl
+search_service_name = "<SERVICE_NAME_FROM_DAY_0>"
+```
+
+Then:
+
+```shell
+terraform init
+terraform plan -out=main.tfplan
+terraform apply main.tfplan
+```
+
+This creates `hotels` and `reservations` from their local JSON definitions.
+Later, edit the JSON or configure `index_files` to add indexes and rerun only
+this stage. Day 1 does not manage or recreate the service.
+
+**Removing an index entry deletes its index; changing its JSON name replaces it.**
+Review plans, retain both states, and use separate backend keys in production.
+Terraform state and local variable files must not be committed.
+
+## Cleanup
+
+Destroy indexes first from `ai-search-terraform/indexes`:
+
+```shell
+terraform destroy
+```
+
+Then destroy infrastructure from `ai-search-terraform/entra-id`:
+
+```shell
+terraform destroy -var="sku=free"
+```
+
+Destroying the service independently also deletes all its indexes and documents.

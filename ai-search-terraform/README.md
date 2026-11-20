@@ -1,9 +1,10 @@
-# Azure AI Search Terraform configuration
+# Terraform stages
 
-The [entra-id configuration](entra-id/README.md) deploys a resource group,
-an Azure AI Search service with key authentication disabled, a service-scoped
-RBAC assignment, and a sample `hotels` index using Microsoft Entra ID.
+- [entra-id](entra-id/README.md): Day 0 Search infrastructure and RBAC.
+- [indexes](indexes/README.md): Day 1+ JSON-defined indexes, separate state.
+- [modules/search-index](modules/search-index/main.tf): reusable native AzAPI
+  index module used by the indexes stage.
 
-Run Terraform from `entra-id`, not this directory. See the
-[repository quick start](../README.md) or the
-[deployment guide](entra-id/README.md) for prerequisites and commands.
+See the [quick start](../README.md). Run Terraform from a stage directory, not
+this directory. Both stages use Entra ID and run on Windows and Linux without
+helper scripts.

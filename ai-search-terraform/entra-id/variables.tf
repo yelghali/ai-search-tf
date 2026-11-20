@@ -39,15 +39,3 @@ variable "partition_count" {
     error_message = "The partition_count must be one of the following values: 1, 2, 3, 4, 6, 12."
   }
 }
-
-variable "api_version" {
-  type        = string
-  description = "Azure Search REST API version"
-  default     = "2024-07-01"
-}
-
-variable "index_name" {
-  type        = string
-  description = "Name of the index to create"
-  default     = "hotels"
-}

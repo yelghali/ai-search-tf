@@ -1,0 +1,12 @@
+{
+  "name": "reservations",
+  "fields": [
+    { "name": "ReservationId", "type": "Edm.String", "key": true, "filterable": true },
+    { "name": "HotelId", "type": "Edm.String", "filterable": true },
+    { "name": "GuestName", "type": "Edm.String", "searchable": true },
+    { "name": "CheckIn", "type": "Edm.DateTimeOffset", "filterable": true, "sortable": true },
+    { "name": "CheckOut", "type": "Edm.DateTimeOffset", "filterable": true, "sortable": true },
+    { "name": "Status", "type": "Edm.String", "filterable": true, "facetable": true },
+    { "name": "TotalAmount", "type": "Edm.Double", "filterable": true, "sortable": true }
+  ]
+}
