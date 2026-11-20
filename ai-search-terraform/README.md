@@ -1,8 +1,9 @@
-# Azure AI Search Terraform templates
+# Azure AI Search Terraform configuration
 
-This repository contains multiple Terraform templates for provisioning Azure AI Search resources. Each template lives in its own directory:
+The [entra-id configuration](entra-id/README.md) deploys a resource group,
+an Azure AI Search service with key authentication disabled, a service-scoped
+RBAC assignment, and a sample `hotels` index using Microsoft Entra ID.
 
-- `entra-id/` – deploys the infrastructure and sample hotels index using Entra ID authentication.
-- `api-key/` – original version that creates the sample index with a Search admin key.
-
-Refer to the README in each folder for prerequisites and deployment steps. Run Terraform commands from the template directory you want to use.
+Run Terraform from `entra-id`, not this directory. See the
+[repository quick start](../README.md) or the
+[deployment guide](entra-id/README.md) for prerequisites and commands.
