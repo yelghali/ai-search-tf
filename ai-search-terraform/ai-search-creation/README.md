@@ -22,6 +22,52 @@ Pass `azurerm_search_service_name` to the indexes stage. Other outputs are
 `resource_group_name` and `search_service_endpoint`.
 No index schema or index file input belongs in this stage.
 
+## Separate CI/CD identity for index management
+
+Yes: run this root in an infrastructure pipeline and the
+[index-creation root](../index-creation/README.md) in a different pipeline with a
+different Entra identity. This root's existing RBAC resource assigns Search
+Service Contributor only to the identity authenticated to AzureRM.
+
+For a separate index pipeline, add an assignment to this Day 0 configuration
+(or manage it in your organization's RBAC configuration). For example:
+
+```hcl
+variable "index_pipeline_principal_id" {
+  type        = string
+  description = "Entra object ID of the index pipeline service principal or managed identity, not its client/application ID."
+}
+
+resource "azurerm_role_assignment" "index_pipeline" {
+  scope                = azurerm_search_service.search.id
+  role_definition_name = "Search Service Contributor"
+  principal_id         = var.index_pipeline_principal_id
+  principal_type       = "ServicePrincipal"
+}
+```
+
+This is an optional example, not a built-in input in the shipped configuration.
+Service principals and managed identities use `ServicePrincipal`; use the
+appropriate principal type if assigning to a user or group instead.
+The identity must exist in the service's tenant.
+
+The Day 0 pipeline needs resource-creation permissions plus permission to assign
+this role at the service scope (for example, Contributor plus User Access
+Administrator, subject to any role-assignment conditions).
+The index pipeline needs only Search Service Contributor for index definitions,
+not Owner or role-assignment permissions.
+
+Use separate federated credentials/service connections per pipeline. Configure
+AzureRM authentication with that pipeline's identity, for example supported
+OIDC `ARM_` settings and CI-specific token delivery; never reuse an interactive
+developer login in unattended CI. Pass only the service name output to Day 1.
+Protect infrastructure state separately: it can contain service keys even though
+key authentication is disabled. Index CI does not need access to it.
+
+Configure remote backends with separate keys and state-storage permissions.
+Backend permissions are independent of Azure resource permissions; this sample
+does not provision or configure a backend. Do not copy local state into Git.
+
 ## Configuration and lifecycle
 
 - Default location: eastus. Override `resource_group_location`.

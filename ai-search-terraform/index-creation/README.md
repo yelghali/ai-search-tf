@@ -6,8 +6,9 @@ It never creates or manages the service. It calls the reusable
 
 ## Deploy the demos
 
-Complete [Day 0](../ai-search-creation/README.md) first. Use the same Azure identity and
-subscription, then create a local `terraform.tfvars` in this directory:
+Complete [Day 0](../ai-search-creation/README.md) first. Authenticate with an
+identity that has Search Service Contributor on that service; this can be a
+different identity from Day 0. Create a local `terraform.tfvars` in this directory:
 
 ```hcl
 search_service_name = "<DAY_0_SERVICE_NAME>"
@@ -56,6 +57,38 @@ stable Terraform identities; the JSON `name` determines the Azure index name.
 No Bash/PowerShell selector, CLI index call, or embedded Terraform schema is
 needed. AzAPI authenticates using Entra ID (Azure CLI locally or supported
 `ARM_` settings in automation).
+
+## Independent CI/CD pipeline
+
+Run this root in its own pipeline with its own Entra service principal or managed
+identity and remote state. The identity requires **Search Service Contributor**
+at the target Search-service scope to create, read, update, and delete index
+definitions. Search Index Data Contributor alone is not sufficient. It does not
+need resource-group creation or role-assignment permissions.
+
+Day 0 currently assigns the role only to its own identity. Provision the separate
+index identity's assignment using the
+[Day 0 Terraform example](../ai-search-creation/README.md#separate-cicd-identity-for-index-management)
+or have an administrator grant it before this pipeline runs.
+
+Configure the pipeline's supported AzAPI authentication, preferably workload
+identity federation/OIDC. Typical inputs are `ARM_CLIENT_ID`, `ARM_TENANT_ID`,
+`ARM_SUBSCRIPTION_ID`, and `ARM_USE_OIDC=true`, plus the CI platform's supported
+OIDC token delivery. These settings alone do not configure federation: create
+the federated credential and grant the job permission to request an ID token.
+An Azure-authenticated service connection/CLI session is another option.
+Do not pass a Search key.
+
+Pass `search_service_name` from the Day 0 output as a pipeline variable (for
+example, `TF_VAR_search_service_name`). No infrastructure-state access is needed.
+The pipeline must have access to its own backend for state reads, writes, and
+locking; Search RBAC does not provide storage access. Use an isolated backend
+key and storage permissions appropriate to your backend.
+
+The runner must also reach the Search data-plane endpoint. A service with private
+network access needs a runner with the required network connectivity and DNS.
+Wait for initial RBAC propagation before planning/applying. Later index changes
+do not require running Day 0 again.
 
 ## Lifecycle and access
 

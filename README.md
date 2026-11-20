@@ -16,7 +16,30 @@ scripts or API keys. The same Terraform configuration works on Windows and Linux
 
 Terraform 1.0+, Azure CLI authenticated with `az login`, and permissions to create
 resources and assign roles (Owner, or Contributor plus User Access Administrator).
-Use the same identity and subscription for both stages.
+The stages can use different CI/CD pipelines and Entra identities. Each identity
+must have the permissions for its stage on the target resources.
+
+## Separate CI/CD pipelines and identities
+
+| Pipeline | Identity permissions | Terraform state |
+| --- | --- | --- |
+| Day 0: service creation | Resource creation and role-assignment permissions at the deployment scope | Infrastructure state only |
+| Day 1+: index creation | Search Service Contributor on the existing Search service | Index state only |
+
+The current Day 0 configuration grants Search Service Contributor to **its own
+deploying identity**, not automatically to a separate index-pipeline identity.
+Before the index pipeline runs, Day 0 or an administrator must grant that second
+identity the role. See the [Terraform RBAC example](ai-search-terraform/ai-search-creation/README.md#separate-cicd-identity-for-index-management).
+
+Use separate workload identity federation/OIDC credentials or service connections
+for each pipeline. Pass the Day 0 service-name output to Day 1 as a pipeline
+variable; Day 1 does not need access to the infrastructure state.
+Configure distinct remote-backend keys (and appropriate storage access controls)
+for the two roots. Backend authentication/permissions are separate from Search
+permissions; no backend is configured by this sample.
+
+Run Day 0 first and allow RBAC propagation before Day 1. Subsequent JSON-only
+changes run only Day 1. For teardown, run Day 1 destroy before Day 0 destroy.
 
 ## Day 0
 
